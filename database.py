@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import shutil
 
 DB_PATH = os.environ.get("DB_PATH", os.path.join(os.path.dirname(__file__), "billed.db"))
 
@@ -8,9 +9,17 @@ try:
     _db_dir = os.path.dirname(DB_PATH)
     if _db_dir and not os.path.exists(_db_dir):
         os.makedirs(_db_dir, exist_ok=True)
+    
+    # If the database file does not exist in the configured path (e.g., persistent disk),
+    # but exists locally in the repository next to this file, copy it as initial seed.
+    if not os.path.exists(DB_PATH):
+        _local_default_db = os.path.join(os.path.dirname(__file__), "billed.db")
+        if os.path.exists(_local_default_db) and os.path.abspath(DB_PATH) != os.path.abspath(_local_default_db):
+            print(f"Seeding persistent database: copying {_local_default_db} to {DB_PATH}")
+            shutil.copy2(_local_default_db, DB_PATH)
 except Exception as e:
     fallback_path = os.path.join(os.path.dirname(__file__), "billed.db")
-    print(f"Warning: Failed to create database directory for '{DB_PATH}' ({e}). Falling back to: {fallback_path}")
+    print(f"Warning: Failed to setup database directory for '{DB_PATH}' ({e}). Falling back to: {fallback_path}")
     DB_PATH = fallback_path
 
 
