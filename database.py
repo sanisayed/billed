@@ -4,9 +4,16 @@ import os
 DB_PATH = os.environ.get("DB_PATH", os.path.join(os.path.dirname(__file__), "billed.db"))
 
 # Ensure parent directory of database exists (especially for cloud persistent volumes like Render)
-_db_dir = os.path.dirname(DB_PATH)
-if _db_dir and not os.path.exists(_db_dir):
-    os.makedirs(_db_dir, exist_ok=True)
+try:
+    _db_dir = os.path.dirname(DB_PATH)
+    if _db_dir and not os.path.exists(_db_dir):
+        os.makedirs(_db_dir, exist_ok=True)
+except Exception as e:
+    fallback_path = os.path.join(os.path.dirname(__file__), "billed.db")
+    print(f"Warning: Failed to create database directory for '{DB_PATH}' ({e}). Falling back to: {fallback_path}")
+    DB_PATH = fallback_path
+
+
 
 
 SCHEMA = """
@@ -51,9 +58,20 @@ CREATE TABLE IF NOT EXISTS bills (
 
 
 def get_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    global DB_PATH
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        return conn
+    except sqlite3.OperationalError as e:
+        fallback_path = os.path.join(os.path.dirname(__file__), "billed.db")
+        if DB_PATH != fallback_path:
+            print(f"Warning: Failed to connect to database at '{DB_PATH}' ({e}). Falling back to: {fallback_path}")
+            DB_PATH = fallback_path
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            return conn
+        raise e
 
 
 def init_db():
