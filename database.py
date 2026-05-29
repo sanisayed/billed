@@ -3,6 +3,12 @@ import os
 
 DB_PATH = os.environ.get("DB_PATH", os.path.join(os.path.dirname(__file__), "billed.db"))
 
+# Ensure parent directory of database exists (especially for cloud persistent volumes like Render)
+_db_dir = os.path.dirname(DB_PATH)
+if _db_dir and not os.path.exists(_db_dir):
+    os.makedirs(_db_dir, exist_ok=True)
+
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS products (
     dta TEXT PRIMARY KEY,
