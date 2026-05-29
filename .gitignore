@@ -1,0 +1,30 @@
+# SQLite Databases
+*.db
+*.sqlite3
+
+# Python Pycache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local test / helper scripts
+inject_search_route.py
+inject_variant_modal.py
+verify_parsing.py
+create_test_files.py
+test_products.xlsx
+test_products.csv
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# IDE / OS metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
